@@ -317,7 +317,7 @@ def show_class_balance(data):
     Input data and see the relative difference in size between the target features of the data    
     """
     plt.tight_layout()
-    return(round(training.fraud_reported.value_counts(normalize=True),2).plot(kind='bar',color='limegreen'))
+    return(round(data.fraud_reported.value_counts(normalize=True),2).plot(kind='bar',color='limegreen'))
 
 def upsample_data(X_tr,y_tr):
     """
@@ -337,3 +337,29 @@ def upsample_data(X_tr,y_tr):
     y_tr = upsampled.fraud_reported
     X_tr = upsampled.drop('fraud_reported', axis=1)
     return (X_tr,y_tr)
+
+def show_categorical_breakdown(dataframe):
+    cat_cols = []
+    cat_col_vals = []
+    for col in cat_list[1:]:
+        cat_cols.append(col) 
+        cat_col_vals.append(dataframe[col].nunique())
+    print (col,df[col].nunique())
+    plt.tight_layout()
+    plt.figure(figsize=(15,8))
+    return plt.barh(cat_cols,cat_col_vals)
+
+def create_encoding(column,df_cat,dataframe):
+    column_dict={}
+    dummy_df = df[[f'{column}','fraud_reported']].groupby([f'{column}'], 
+    as_index = False).mean().sort_values(by = 'fraud_reported', ascending = False)
+    for i in range(len(dummy_df)):
+        column_dict[dummy_df.iloc[i][0]]=dummy_df.iloc[i][1]
+    df_cat.column = dataframe.map(lambda x: column_dict[x])
+    return df_cat
+
+def remove_categorical_correlation(dataframe):
+    dataframe.drop(['incident_type'],axis=1,inplace=True)
+        
+def reduce_extra_features(dataframe):
+    pass
