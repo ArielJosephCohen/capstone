@@ -273,7 +273,7 @@ def reassign_year_and_month(dataframe):
     for dfra in moyear_lst:
         for col in dfra.columns:
             dataframe[col]=dataframe[col]
-    return dataframes
+    return dataframe
 
 def filter_outliers(dataframe,threshold=2.5):
     """
