@@ -233,17 +233,12 @@ def filter_outliers(dataframe,threshold=2.5):
     print(dataframe.shape)
     return dataframe
 
-def split_data(dataframe,t_s=0.25):
+def split_data(X,y,random_seed,t_s=0.25):
     """
-    Input a data frame, assign X and y for features and target, and split into two groups of data with ability to customize amount of data assigned to test set
+    Input X and y for features and target, and split into two groups of data with ability to customize amount of data assigned to test set
     """
-    X = dataframe.drop('fraud_reported',axis=1)
-    y = dataframe.fraud_reported
     from sklearn.model_selection import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(X,y,random_state=seed,test_size=t_s)
-    print('Do shapes match?')
-    print(X_test.shape[0]==y_test.shape[0])
-    print(X_train.shape[0]==y_train.shape[0])
+    X_train, X_test, y_train, y_test = train_test_split(X,y,random_state=random_seed,test_size=t_s)
     return (X_train, X_test, y_train, y_test)
 
 def show_class_balance(data):
@@ -253,7 +248,7 @@ def show_class_balance(data):
     plt.tight_layout()
     return(round(data.fraud_reported.value_counts(normalize=True),2).plot(kind='bar',color='limegreen'))
 
-def upsample_data(X_tr,y_tr):
+def upsample_data(X_tr,y_tr,random_seed):
     """
     Input X and y training data from an unbalanced data set to upsample the minority class for a more meaningful model
     """
@@ -264,13 +259,11 @@ def upsample_data(X_tr,y_tr):
     fraud_upsampled = resample(fraud,
                           replace=True, # sample with replacement
                           n_samples=len(true), # match number in majority class
-                          random_state=seed) # reproducible results
+                          random_state=random_seed) # reproducible results
     upsampled = pd.concat([true, fraud_upsampled])
-    plt.tight_layout()
-    print(round(upsampled.fraud_reported.value_counts(normalize=True),2).plot(kind='bar',color='limegreen'))
     y_tr = upsampled.fraud_reported
     X_tr = upsampled.drop('fraud_reported', axis=1)
-    return (X_tr,y_tr)
+    return X_tr,y_tr
 
 def show_categorical_breakdown(dataframe):
     cat_cols = []
@@ -397,3 +390,353 @@ def scale_data(dataframe):
         if (dataframe[col]>=1).sum() >0:
             dataframe[col] = scaler.fit_transform(dataframe[[col]])
     return dataframe
+
+class models():
+    """
+    Create a class to store data coming later for summary tables
+    """
+    
+    metrics_train = {'models':[],'accuracy':[],'precision':[],'recall':[],'f1':[]}
+    metrics_test = {'models':[],'accuracy':[],'precision':[],'recall':[],'f1':[]}
+    
+
+    def logistic_regression_model(X_tr,y_tr,X_val,y_val,rs):
+        """
+        Input data into a logistic regression model and output accuracy, precision, recall, f1, and confusion matrix
+        """
+    
+        from sklearn.metrics import confusion_matrix
+        from sklearn.metrics import f1_score
+        from sklearn.metrics import recall_score
+        from sklearn.metrics import accuracy_score
+        from sklearn.metrics import precision_score
+        from sklearn.metrics import roc_auc_score
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.metrics import classification_report
+
+        logreg = LogisticRegression(C=27825,random_state=rs,penalty='l2',dual=False,fit_intercept=True,multi_class='auto',
+                                    solver='liblinear')
+        logreg.fit(X_tr, y_tr)
+        Y_pred = logreg.predict(X_val)
+        acc_log = round(logreg.score(X_val, y_val) * 100, 2)
+        p_score_lr = round(precision_score(y_val,Y_pred,average='binary')*100,2)
+        r_score_lr = round(recall_score(y_val,Y_pred,average='binary')*100,2)
+        f1_lr = round(f1_score(y_val,Y_pred,average='binary')*100,2)
+        cf=(confusion_matrix(y_val, Y_pred))
+        scores = [acc_log,p_score_lr,r_score_lr,f1_lr]
+        class_rep=(classification_report(y_val,Y_pred))
+        if X_tr == X_val:
+            models.metrics_train['models'].append('logistic regression')
+            models.metrics_train['accuracy'].append(acc_log)
+            models.metrics_train['precision'].append(p_score_lr)
+            models.metrics_train['recall'].append(r_score_lr)
+            models.metrics_train['f1'].append(f1_lr)
+        else:
+            models.metrics_test['models'].append('logistic regression')
+            models.metrics_test['accuracy'].append(acc_log)
+            models.metrics_test['precision'].append(p_score_lr)
+            models.metrics_test['recall'].append(r_score_lr)
+            models.metrics_test['f1'].append(f1_lr)
+        return scores,class_rep,cf
+
+
+    def support_vector_machine_model(X_tr,y_tr,X_val,y_val,rs):
+        """
+        Input data into a support vector machine model and output accuracy, precision, recall, f1, and confusion matrix
+        """
+    
+        from sklearn.metrics import confusion_matrix
+        from sklearn.metrics import f1_score
+        from sklearn.metrics import recall_score
+        from sklearn.metrics import accuracy_score
+        from sklearn.metrics import precision_score
+        from sklearn.metrics import roc_auc_score
+        from sklearn.metrics import classification_report
+        from sklearn.svm import SVC
+
+        svc = SVC(random_state=rs,C=10,gamma=1,kernel='linear')
+        svc.fit(X_tr, y_tr)
+        Y_pred = svc.predict(X_val)
+        acc_svc = round(svc.score(X_val, y_val) * 100, 2)
+        p_score_svc = round(precision_score(y_val,Y_pred,average='binary')*100,2)
+        r_score_svc = round(recall_score(y_val,Y_pred,average='binary')*100,2)
+        f1_svc = round(f1_score(y_val,Y_pred,average='binary')*100,2)
+        cf=(confusion_matrix(y_val, Y_pred))
+        scores = [acc_svc,p_score_svc,r_score_svc,f1_svc]
+        class_rep=(classification_report(y_val,Y_pred))
+        if X_tr == X_val:
+            models.metrics_train['models'].append('support vector machine')
+            models.metrics_train['accuracy'].append(acc_svc)
+            models.metrics_train['precision'].append(p_score_svc)
+            models.metrics_train['recall'].append(r_score_svc)
+            models.metrics_train['f1'].append(f1_svc)
+        else:
+            models.metrics_test['models'].append('support vector machine')
+            models.metrics_test['accuracy'].append(acc_svc)
+            models.metrics_test['precision'].append(p_score_svc)
+            models.metrics_test['recall'].append(r_score_svc)
+            models.metrics_test['f1'].append(f1_svc)
+        return scores,class_rep,cf   
+
+    def knn_model(X_tr,y_tr,X_val,y_val):
+        """
+        Input data into a K nearest neighbors model and output accuracy, precision, recall, f1, and confusion matrix
+        """
+
+        from sklearn.metrics import confusion_matrix
+        from sklearn.metrics import f1_score
+        from sklearn.metrics import recall_score
+        from sklearn.metrics import accuracy_score
+        from sklearn.metrics import precision_score
+        from sklearn.metrics import roc_auc_score
+        from sklearn.metrics import classification_report
+        from sklearn.neighbors import KNeighborsClassifier
+
+        knn = KNeighborsClassifier(n_neighbors = 3,weights='distance',metric='manhattan',algorithm='ball_tree')
+        knn.fit(X_tr, y_tr)
+        Y_pred = knn.predict(X_val)
+        acc_knn = round(knn.score(X_val, y_val) * 100, 2)
+        p_score_knn = round(precision_score(y_val,Y_pred,average='binary')*100,2)
+        r_score_knn = round(recall_score(y_val,Y_pred,average='binary')*100,2)
+        f1_knn = round(f1_score(y_val,Y_pred,average='binary')*100,2)
+        cf=(confusion_matrix(y_val, Y_pred))
+        scores = [acc_knn,p_score_knn,r_score_knn,f1_knn]
+        class_rep=(classification_report(y_val,Y_pred))
+        models.metrics['models'].append('k nearest neighbors')
+        models.metrics['accuracy'].append(acc_knn)
+        models.metrics['precision'].append(p_score_knn)
+        models.metrics['recall'].append(r_score_knn)
+        models.metrics['f1'].append(f1_knn)
+        return scores,class_rep,cf
+
+    def gaussian_naive_bayes_model(X_tr,y_tr,X_val,y_val):
+        """
+        Input data into a gaussian naive bayes model and output accuracy, precision, recall, f1, and confusion matrix
+        """
+        from sklearn.naive_bayes import GaussianNB
+        from sklearn.metrics import confusion_matrix
+        from sklearn.metrics import f1_score
+        from sklearn.metrics import recall_score
+        from sklearn.metrics import accuracy_score
+        from sklearn.metrics import precision_score
+        from sklearn.metrics import roc_auc_score
+        from sklearn.metrics import classification_report
+        from sklearn.neighbors import KNeighborsClassifier
+
+        gnb = GaussianNB()
+        gnb.fit(X_tr, y_tr)
+        Y_pred = gnb.predict(X_val)
+        acc_gnb = round(gnb.score(X_val, y_val) * 100, 2)
+        p_score_gnb = round(precision_score(y_val,Y_pred,average='binary')*100,2)
+        r_score_gnb = round(recall_score(y_val,Y_pred,average='binary')*100,2)
+        f1_gnb = round(f1_score(y_val,Y_pred,average='binary')*100,2)
+        cf=(confusion_matrix(y_val, Y_pred))
+        scores = [acc_gnb,p_score_gnb,r_score_gnb,f1_gnb]
+        class_rep=(classification_report(y_val,Y_pred))
+        if X_tr == X_val:
+            models.metrics_train['models'].append('gaussian naive bayes')
+            models.metrics_train['accuracy'].append(acc_gnb)
+            models.metrics_train['precision'].append(p_score_gnb)
+            models.metrics_train['recall'].append(r_score_gnb)
+            models.metrics_train['f1'].append(f1_gnb)
+        else:
+            models.metrics_test['models'].append('gaussian naive bayes')
+            models.metrics_test['accuracy'].append(acc_gnb)
+            models.metrics_test['precision'].append(p_score_gnb)
+            models.metrics_test['recall'].append(r_score_gnb)
+            models.metrics_test['f1'].append(f1_gnb)
+        return scores,class_rep,cf   
+
+    def linear_svc_model(X_tr,y_tr,X_val,y_val,rs):
+        """
+        Input data into a linear support vector machine model and output accuracy, precision, recall, f1, and confusion matrix
+        """
+        from sklearn.naive_bayes import LinearSVC
+        from sklearn.metrics import confusion_matrix
+        from sklearn.metrics import f1_score
+        from sklearn.metrics import recall_score
+        from sklearn.metrics import accuracy_score
+        from sklearn.metrics import precision_score
+        from sklearn.metrics import roc_auc_score
+        from sklearn.metrics import classification_report
+        from sklearn.neighbors import KNeighborsClassifier
+
+        lsvc = LinearSVC(C=100,random_state=rs,penalty='l1',dual=False,loss='squared_hinge')
+        lsvc.fit(X_tr, y_tr)
+        Y_pred = lsvc.predict(X_val)
+        acc_lsvc = round(lsvc.score(X_val, y_val) * 100, 2)
+        p_score_lsvc = round(precision_score(y_val,Y_pred,average='binary')*100,2)
+        r_score_lsvc = round(recall_score(y_val,Y_pred,average='binary')*100,2)
+        f1_lsvc = round(f1_score(y_val,Y_pred,average='binary')*100,2)
+        cf=(confusion_matrix(y_val, Y_pred))
+        scores = [acc_lsvc,p_score_lsvc,r_score_lsvc,f1_lsvc]
+        class_rep=(classification_report(y_val,Y_pred))
+        if X_tr == X_val:
+            models.metrics_train['models'].append('k nearest neighbors')
+            models.metrics_train['accuracy'].append(acc_knn)
+            models.metrics_train['precision'].append(p_score_knn)
+            models.metrics_train['recall'].append(r_score_knn)
+            models.metrics_train['f1'].append(f1_knn)
+        else:
+            models.metrics_test['models'].append('k nearest neighbors')
+            models.metrics_test['accuracy'].append(acc_knn)
+            models.metrics_test['precision'].append(p_score_knn)
+            models.metrics_test['recall'].append(r_score_knn)
+            models.metrics_test['f1'].append(f1_knn)
+        return scores,class_rep,cf   
+
+    def stochastic_gradient_descent_model(X_tr,y_tr,X_val,y_val,rs):
+        """
+        Input data into a stochastic gradient descent model and output accuracy, precision, recall, f1, and confusion matrix
+        """
+        from sklearn.linear_model import SGDClassifier
+        from sklearn.metrics import confusion_matrix
+        from sklearn.metrics import f1_score
+        from sklearn.metrics import recall_score
+        from sklearn.metrics import accuracy_score
+        from sklearn.metrics import precision_score
+        from sklearn.metrics import roc_auc_score
+        from sklearn.metrics import classification_report
+        from sklearn.neighbors import KNeighborsClassifier
+
+        sgd = SGDClassifier(random_state=rs,penalty='l2',fit_intercept=True)
+        sgd.fit(X_tr, y_tr)
+        Y_pred = sgd.predict(X_val)
+        acc_sgd = round(sgd.score(X_val, y_val) * 100, 2)
+        p_score_sgd = round(precision_score(y_val,Y_pred,average='binary')*100,2)
+        r_score_sgd = round(recall_score(y_val,Y_pred,average='binary')*100,2)
+        f1_sgd = round(f1_score(y_val,Y_pred,average='binary')*100,2)
+        cf=(confusion_matrix(y_val, Y_pred))
+        scores = [acc_sgd,p_score_sgd,r_score_sgd,f1_sgd]
+        class_rep=(classification_report(y_val,Y_pred))
+        if X_tr == X_val:
+            models.metrics_train['models'].append('stochastic gradient descent')
+            models.metrics_train['accuracy'].append(acc_sgd)
+            models.metrics_train['precision'].append(p_score_sgd)
+            models.metrics_train['recall'].append(r_score_sgd)
+            models.metrics_train['f1'].append(f1_sgd)
+        else:
+            models.metrics_test['models'].append('stochastic gradient descent')
+            models.metrics_test['accuracy'].append(acc_sgd)
+            models.metrics_test['precision'].append(p_score_sgd)
+            models.metrics_test['recall'].append(r_score_sgd)
+            models.metrics_test['f1'].append(f1_sgd)
+        return scores,class_rep,cf
+
+    def decision_tree_model(X_tr,y_tr,X_val,y_val,rs):
+        """
+        Input data into a decision tree model and output accuracy, precision, recall, f1, and confusion matrix
+        """
+        from sklearn.tree import DecisionTreeClassifier
+        from sklearn.metrics import confusion_matrix
+        from sklearn.metrics import f1_score
+        from sklearn.metrics import recall_score
+        from sklearn.metrics import accuracy_score
+        from sklearn.metrics import precision_score
+        from sklearn.metrics import roc_auc_score
+        from sklearn.metrics import classification_report
+        from sklearn.neighbors import KNeighborsClassifier
+
+        dt = DecisionTreeClassifier(max_depth=9,random_state=rs,min_samples_leaf=1)
+        dt.fit(X_tr,y_tr)
+        Y_pred = dt.predict(X_val)
+        acc_dt = round(dt.score(X_val, y_val) * 100, 2)
+        p_score_dt = round(precision_score(y_val,Y_pred,average='binary')*100,2)
+        r_score_dt = round(recall_score(y_val,Y_pred,average='binary')*100,2)
+        f1_dt = round(f1_score(y_val,Y_pred,average='binary')*100,2)
+        cf=(confusion_matrix(y_val, Y_pred))
+        scores = [acc_dt,p_score_dt,r_score_dt,f1_dt]
+        class_rep=(classification_report(y_val,Y_pred))
+        if X_tr == X_val:
+            models.metrics_train['models'].append('decision tree')
+            models.metrics_train['accuracy'].append(acc_dt)
+            models.metrics_train['precision'].append(p_score_dt)
+            models.metrics_train['recall'].append(r_score_dt)
+            models.metrics_train['f1'].append(f1_dt)
+        else:
+            models.metrics_test['models'].append('decision tree')
+            models.metrics_test['accuracy'].append(acc_dt)
+            models.metrics_test['precision'].append(p_score_dt)
+            models.metrics_test['recall'].append(r_score_dt)
+            models.metrics_test['f1'].append(f1_dt)
+        return scores,class_rep,cf
+
+    def random_forest_model(X_tr,y_tr,X_val,y_val,rs):
+        """
+        Input data into a random forest model and output accuracy, precision, recall, f1, and confusion matrix
+        """
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.metrics import confusion_matrix
+        from sklearn.metrics import f1_score
+        from sklearn.metrics import recall_score
+        from sklearn.metrics import accuracy_score
+        from sklearn.metrics import precision_score
+        from sklearn.metrics import roc_auc_score
+        from sklearn.metrics import classification_report
+        from sklearn.neighbors import KNeighborsClassifier
+
+        rfc = RandomForestClassifier(n_estimators=400,min_samples_split=2,min_samples_leaf=1,max_features='sqrt',
+                                           random_state=rs)
+        rfc.fit(X_tr,y_tr)
+        Y_pred = rfc.predict(X_val)
+        acc_rfc = round(rfc.score(X_val, y_val) * 100, 2)
+        p_score_rfc = round(precision_score(y_val,Y_pred,average='binary')*100,2)
+        r_score_rfc = round(recall_score(y_val,Y_pred,average='binary')*100,2)
+        f1_rfc = round(f1_score(y_val,Y_pred,average='binary')*100,2)
+        cf=(confusion_matrix(y_val, Y_pred))
+        scores = [acc_frc,p_score_rfc,r_score_rfc,f1_rfc]
+        class_rep=(classification_report(y_val,Y_pred))
+        if X_tr == X_val:
+            models.metrics_train['models'].append('random forest')
+            models.metrics_train['accuracy'].append(acc_rfc)
+            models.metrics_train['precision'].append(p_score_rfc)
+            models.metrics_train['recall'].append(r_score_rfc)
+            models.metrics_train['f1'].append(f1_rfc)
+        else:
+            models.metrics_test['models'].append('random forest')
+            models.metrics_test['accuracy'].append(acc_rfc)
+            models.metrics_test['precision'].append(p_score_rfc)
+            models.metrics_test['recall'].append(r_score_rfc)
+            models.metrics_test['f1'].append(f1_rfc)
+        return scores,class_rep,cf
+
+
+    def XGBoost_model(X_tr,y_tr,X_val,y_val,rs):
+        """
+        Input data into a XGBoost model and output accuracy, precision, recall, f1, and confusion matrix
+        """
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.metrics import confusion_matrix
+        from sklearn.metrics import f1_score
+        from sklearn.metrics import recall_score
+        from sklearn.metrics import accuracy_score
+        from sklearn.metrics import precision_score
+        from sklearn.metrics import roc_auc_score
+        from sklearn.metrics import classification_report
+        from numpy import loadtxt
+        from xgboost import XGBClassifier
+
+        xgb = XGBClassifier(learning_rate=0.1,max_depth=5,n_estimators=140)
+        xgb.fit(X_tr,y_tr)
+        Y_pred = xgb.predict(X_val)
+        acc_xgb = round(xgb.score(X_val, y_val) * 100, 2)
+        p_score_xgb = round(precision_score(y_val,Y_pred,average='binary')*100,2)
+        r_score_xgb = round(recall_score(y_val,Y_pred,average='binary')*100,2)
+        f1_xgb = round(f1_score(y_val,Y_pred,average='binary')*100,2)
+        cf=(confusion_matrix(y_val, Y_pred))
+        scores = [acc_xgb,p_score_xgb,r_score_xgb,f1_xgb]
+        class_rep=(classification_report(y_val,Y_pred))
+        if X_tr == X_val:
+            models.metrics_train['models'].append('xgboost')
+            models.metrics_train['accuracy'].append(acc_xgb)
+            models.metrics_train['precision'].append(p_score_xgb)
+            models.metrics_train['recall'].append(r_score_xgb)
+            models.metrics_train['f1'].append(f1_xgb)
+        else:
+            models.metrics_test['models'].append('xgboost')
+            models.metrics_test['accuracy'].append(acc_xgb)
+            models.metrics_test['precision'].append(p_score_xgb)
+            models.metrics_test['recall'].append(r_score_xgb)
+            models.metrics_test['f1'].append(f1_xgb)
+        return scores,class_rep,cf
+
