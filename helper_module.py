@@ -23,22 +23,6 @@ def convert_to_date(column):
     Input a column from a data frame to convert that column to a date-time format
     """
     df[column]=pd.to_datetime(df[column])
-    
-def gender_val(row):
-    """
-    Input a row from a data frame to convert to a numerical metric for gender
-    """
-    if row['insured_sex'] == 'MALE':
-        return 1
-    else:
-        return 0
-
-def map_gender(dataframe):
-    """
-    Input a data frame to assign the gender column in said data frame as a numerical feature
-    """
-    dataframe['insured_sex']=df.apply(gender_val,axis=1)
-    return dataframe
 
 def plot_claim_vs_premium(dataframe,fig=(11,6)):
     """
@@ -177,8 +161,16 @@ def create_cat_list():
     """
     Create an initial list of categorical features
     """
-    cat_list =['policy_bind_date','policy_state','policy_csl','insured_sex','insured_education_level','insured_occupation','insured_hobbies','insured_relationship','incident_date','incident_type','collision_type','incident_severity','authorities_contacted','incident_state','incident_city','property_damage','police_report_available','auto_make','auto_model','fraud_reported']
+    cat_list =['policy_state','policy_csl','insured_sex','insured_education_level','insured_occupation','insured_hobbies','insured_relationship','incident_type','collision_type','incident_severity','authorities_contacted','incident_state','incident_city','property_damage','police_report_available','auto_make','auto_model','fraud_reported','policy_bind_year','policy_bind_month']
     return cat_list
+
+def create_cat_list_2():
+    """
+    Create an initial list of categorical features
+    """
+    cat_list_2 =['policy_state','policy_csl','insured_sex','insured_education_level','insured_occupation','insured_hobbies','insured_relationship','incident_type','collision_type','incident_severity','authorities_contacted','incident_state','incident_city','property_damage','police_report_available','auto_make','auto_model','policy_bind_year','policy_bind_month']
+    return cat_list_2
+
 
 def assign_df_categorical_split(dataframe):
     """
@@ -205,23 +197,16 @@ def plot_numerical_feature_correlation(dataframe,fig=(15,8),threshold=0.7):
     plt.tight_layout()
     return sns.heatmap(dataframe[num_list].corr()>=threshold)
 
-def remove_correlation(dataframe):
+def remove_correlation(dataframe,lst):
     """
-    Input a data frame and remove highly-correlated variables
+    Input a data frame to remove highly-correlated variables and update the list of variables
     """
     dataframe.drop(['age','total_claim_amount','vehicle_claim'],axis=1,inplace=True)
-    num_list.remove('age')
-    num_list.remove('total_claim_amount')
-    num_list.remove('vehicle_claim')
-    
-def convert_cal_df(df_list):
-    """
-    Input a list of data frames containing dummy variables and bring them into the categorical dataframe as binary otuputs
-    """
-    for dfr in df_list:
-        for col in dfr.columns:
-            df_cat[col]=dfr[col]
-    return df_cat
+    lst.remove('age')
+    lst.remove('total_claim_amount')
+    lst.remove('vehicle_claim')
+    lst.append('timeline')
+    return dataframe,lst
 
 def drop_cat(lst):
     """
@@ -229,50 +214,15 @@ def drop_cat(lst):
     """
     return df_cat.drop(lst,axis=1,inplace=True)
 
-
-def scale_and_transform(dataframe,extra_number=0.5):
-    """
-    Input a dataframe and apply min-max scaling followed by feature normalization on its features. Use the extra_number parameter for more customization on normalization.
-    """
-    from sklearn.preprocessing import MinMaxScaler
-    scaler = MinMaxScaler()
-    for col in dataframe.columns:
-        dataframe[col] = scaler.fit_transform(dataframe[[col]])
-    for col in dataframe.columns:
-        dataframe[col]=list(stats.boxcox(abs(dataframe[col]+extra_number)))[0]
-    return dataframe
-
-def merge_numerical_and_categorical(dataframe1,dataframe2):
-    """
-    Innput two data frames to combine after addressing numerical and categorical features separately
-    """
-    df_atg = dataframe1.copy()
-    for col in dataframe2.columns:
-        df_atg[col]=dataframe2[col]
-    return df_atg
-
 def reassign_year_and_month(dataframe):
     """
     Input a data frame and create policy_bind_year, policy_bind_month, incident_year, and incident_month to then be covnverted into dummy variables
     """
     dataframe['policy_bind_month']=0
     dataframe['policy_bind_year']=0
-    dataframe['incident_month']=0
-    dataframe['incident_year']=0
-    for i in range(len(df_atg)):
-        dataframe['policy_bind_month'][i]=int(str(dataframe.incident_date[i]).split()[0][5:7])
-        dataframe['policy_bind_year'][i]= int(str(dataframe.incident_date[i]).split()[0][0:4])
-        dataframe['incident_month'][i]= int(str(dataframe.policy_bind_date[i]).split()[0][5:7])
-        dataframe['incident_year'][i]= int(str(dataframe.policy_bind_date[i]).split()[0][0:4])
-    dataframe.drop(['incident_date','policy_bind_date'],axis=1,inplace=True)
-    i_month_df=pd.get_dummies(dataframe.incident_month,prefix='in-month',drop_first=True)
-    i_year_df=pd.get_dummies(dataframe.incident_year,prefix='in-year',drop_first=True)
-    p_month_df=pd.get_dummies(dataframe.policy_bind_month,prefix='pol-month',drop_first=True)
-    p_year_df=pd.get_dummies(dataframe.policy_bind_year,prefix='pol-year',drop_first=True)
-    moyear_lst=[p_month_df,p_year_df,i_month_df,i_month_df]
-    for dfra in moyear_lst:
-        for col in dfra.columns:
-            dataframe[col]=dataframe[col]
+    for i in range(len(dataframe)):
+        dataframe['policy_bind_month'][i]=int(str(dataframe.policy_bind_date[i]).split()[0][3:5])
+        dataframe['policy_bind_year'][i]= int(str(dataframe.policy_bind_date[i]).split()[0][6:10])
     return dataframe
 
 def filter_outliers(dataframe,threshold=2.5):
@@ -281,22 +231,6 @@ def filter_outliers(dataframe,threshold=2.5):
     """
     dataframe = dataframe[(np.abs(stats.zscore(dataframe[num_list])) <= threshold).all(axis=1)]
     print(dataframe.shape)
-    return dataframe
-
-def assign_fraud_binary(row):
-    """
-    Input a row and convert pressence of fraud to numerica; feature
-    """
-    if row['fraud_reported'] == 'Y':
-        return 1
-    else:
-        return 0
-    
-def map_fraud_binary(dataframe):
-    """
-    Input a data frame and convert all instances of fraud to numerical binaries
-    """
-    dataframe['fraud_reported']=dataframe.apply(assign_fraud_binary,axis=1)
     return dataframe
 
 def split_data(dataframe,t_s=0.25):
@@ -349,17 +283,117 @@ def show_categorical_breakdown(dataframe):
     plt.figure(figsize=(15,8))
     return plt.barh(cat_cols,cat_col_vals)
 
-def create_encoding(column,df_cat,dataframe):
+def create_encoding(column,subset,dataframe):
+    """
+    Input a feature from a categorical data frame to encode numerically
+    """
     column_dict={}
-    dummy_df = df[[f'{column}','fraud_reported']].groupby([f'{column}'], 
+    dummy_df = dataframe[[f'{column}','fraud_reported']].groupby([f'{column}'], 
     as_index = False).mean().sort_values(by = 'fraud_reported', ascending = False)
     for i in range(len(dummy_df)):
-        column_dict[dummy_df.iloc[i][0]]=dummy_df.iloc[i][1]
-    df_cat.column = dataframe.map(lambda x: column_dict[x])
-    return df_cat
+        column_dict[dummy_df.iloc[i][0]]=(1-dummy_df.iloc[i][1])
+    subset[column] = dataframe[column].map(lambda x: column_dict[x])
+    return subset
 
-def remove_categorical_correlation(dataframe):
-    dataframe.drop(['incident_type'],axis=1,inplace=True)
+def remove_categorical_correlation(dataframe,column_lst):
+    """
+    Input a list of features to drop after categorical encoding
+    """
+    dataframe.drop(column_lst,axis=1,inplace=True)
+    return dataframe
+
+def combine_data_frames(df1,df2):
+    """
+    Input two data frames to be merged
+    """
+    new_df = df1.copy()
+    for col in df2.columns:
+        new_df[col]=df2[col]
+    return new_df
         
-def reduce_extra_features(dataframe):
-    pass
+def clean_data(dataframe):
+    """
+    Input a data frame and have all the problematic values filled
+    """    
+    dataframe=dataframe.replace('?',np.NaN)
+    dataframe['collision_type'].fillna(dataframe['collision_type'].mode()[0], inplace = True)
+    dataframe['property_damage'].fillna('NO', inplace = True)
+    dataframe['police_report_available'].fillna('NO', inplace = True)
+    return dataframe
+    
+def map_binary_dict(dataframe,feature,value_1,value_2):
+    """
+    Input a binary feature and have value 1 mapped as a 1 and value 2 mapped as a zero
+    """
+    binary_dict = {value_1:1,value_2:0}
+    dataframe[feature]=dataframe[feature].map(lambda x: binary_dict[x])
+    return dataframe
+
+def create_timeline(dataframe):
+    """
+    Input a data frame to establish a timeline from policy bind date to claims
+    """
+    dataframe.policy_bind_date=pd.to_datetime(dataframe.policy_bind_date)
+    dataframe.incident_date=pd.to_datetime(dataframe.incident_date)
+    dataframe['timeline']=dataframe.incident_date-dataframe.policy_bind_date
+    for i in range(len(dataframe)):
+        dataframe.timeline[i] = int(str(dataframe.timeline[i]).split()[0])
+    dataframe.timeline=dataframe.timeline.astype(int)
+    return dataframe
+
+def quantify_absolute_value(dataframe,feature):
+    """
+    Input a feature from a data frame to turn to absolute value
+    """ 
+    dataframe[feature]=np.abs(dataframe[feature])
+    return dataframe
+
+def assign_new_dataframe(dataframe,lst,drop_lst=None):
+    """
+    Input a data frame and create a subset data frame
+    """
+    lst=lst.remove(drop_lst)
+    new_dataframe=dataframe[lst]
+    return new_dataframe
+
+def reduce_features(dataframe,seed):
+    """
+    Input a data frame and reduce un-needed features
+    """
+    from sklearn.feature_selection import rfe
+    from sklearn.model_selection import RandomizedSearchCV
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.feature_selection import RFECV
+    from sklearn.model_selection import StratifiedKFold
+    X = dataframe.drop('fraud_reported',axis=1)
+    y = dataframe.fraud_reported
+    rfc = RandomForestClassifier(random_state=seed)
+    rfecv = RFECV(estimator=rfc, step=1, cv=StratifiedKFold(8), scoring='accuracy',min_features_to_select=12)
+    rfecv.fit(X, y)
+    support_list = list(rfecv.support_)
+    importance = []
+    for val, sup in list(zip(X.columns,support_list)):
+        if sup == True:
+            importance.append(val)
+    xydf = pd.concat([X[importance],dataframe.fraud_reported],axis=1)
+    return xydf
+
+def filter_outliers(dataframe):
+    from scipy import stats
+    dataframe = dataframe[(np.abs(stats.zscore(dataframe)) <= 2.5).all(axis=1)]
+    return dataframe
+
+def normalize_features(dataframe):
+    for col in dataframe.columns:
+        dataframe[col]=list(stats.boxcox(abs(dataframe[col]+0.01)))[0]
+    return dataframe
+    
+def scale_data(dataframe):
+    from sklearn.preprocessing import StandardScaler
+    ss = StandardScaler()
+    from sklearn.preprocessing import MinMaxScaler
+    scaler = MinMaxScaler()
+    for col in dataframe.columns:
+        if (dataframe[col]>=1).sum() >0:
+            dataframe[col] = scaler.fit_transform(dataframe[[col]])
+    return dataframe
