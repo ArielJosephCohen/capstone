@@ -1,6 +1,9 @@
 # **Introduction**: The goal of this notebook is to comprehensively go through the process of creating machine learning models for predicting potential car insurance fraud. When a car is hit or stolen, the insurance company pays out to the effected parties a certain amount of cash as compensation for their monetary loss. Unfortuneately, insured customers and drivers will at times lie about or fake details in a reported insurance claim to make some easy money. My models attempt to solve this problem in two ways. The first way is to determine what models best predict potential fraud. The second is similar, where I attempt to identify the characterisitcs of a report most indicative of potential fraud. The value I attempt to predict is a binary outcome as to whether a report was fraudulent or not.
 
-## Links: GitHub: https://github.com/ArielJosephCohen/capstone Data: https://www.kaggle.com/roshansharma/insurance-claim Presentation: https://docs.google.com/presentation/d/1IQdYSxrzyGvMpurhM-i097Btp4ksqL70WLEiM6yc5Sw/edit#slide=id.g35f391192_00
+## Links: 
+GitHub: https://github.com/ArielJosephCohen/capstone
+Data: https://www.kaggle.com/roshansharma/insurance-claim
+Presentation: https://docs.google.com/presentation/d/1IQdYSxrzyGvMpurhM-i097Btp4ksqL70WLEiM6yc5Sw/edit#slide=id.g35f391192_00
 
 # As I attempt to solve this problem, I will go through the following process: Collect relevant data, explore data, clean data, model data, and finally, draw conclusions.
 
