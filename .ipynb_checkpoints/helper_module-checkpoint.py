@@ -387,7 +387,7 @@ def normalize_features(dataframe):
         dataframe[col]=list(stats.boxcox(abs(dataframe[col]+0.01)))[0]
     return dataframe
     
-def scale_data(dataframe):
+def min_max_scale_data(dataframe):
     """
     Input a data frame and scale data using Min-Max scaling
     """
@@ -396,6 +396,17 @@ def scale_data(dataframe):
     for col in dataframe.columns:
         if (dataframe[col]>=1).sum() >0:
             dataframe[col] = scaler.fit_transform(dataframe[[col]])
+    return dataframe
+
+def standard_scale_data(dataframe):
+    """
+    Input a data frame and scale data using Min-Max scaling
+    """
+    from sklearn.preprocessing import StandardScaler
+    ss = StandardScaler()
+    for col in dataframe.columns:
+        if (dataframe[col]>=1).sum() >0:
+            dataframe[col] = ss.fit_transform(dataframe[[col]])
     return dataframe
 
 class models():
