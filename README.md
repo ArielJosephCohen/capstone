@@ -1,2 +1,1 @@
-# capstone
-capstone_repo
+The project and process present in this folder go through a machine learning model to find a way to accurately and consistenly detect car insurance fraud. The data frame used for manipulation, inspection, and conclusions come from kaggle.com and contain 1000 rows of data. 

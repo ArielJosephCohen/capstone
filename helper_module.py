@@ -425,7 +425,7 @@ class models():
         cf=(confusion_matrix(y_val, Y_pred))
         scores = [acc_log,p_score_lr,r_score_lr,f1_lr]
         class_rep=(classification_report(y_val,Y_pred))
-        if X_tr == X_val:
+        if X_tr.equals(X_val):
             models.metrics_train['models'].append('logistic regression')
             models.metrics_train['accuracy'].append(acc_log)
             models.metrics_train['precision'].append(p_score_lr)
@@ -464,7 +464,7 @@ class models():
         cf=(confusion_matrix(y_val, Y_pred))
         scores = [acc_svc,p_score_svc,r_score_svc,f1_svc]
         class_rep=(classification_report(y_val,Y_pred))
-        if X_tr == X_val:
+        if X_tr.equals(X_val):
             models.metrics_train['models'].append('support vector machine')
             models.metrics_train['accuracy'].append(acc_svc)
             models.metrics_train['precision'].append(p_score_svc)
@@ -502,12 +502,19 @@ class models():
         cf=(confusion_matrix(y_val, Y_pred))
         scores = [acc_knn,p_score_knn,r_score_knn,f1_knn]
         class_rep=(classification_report(y_val,Y_pred))
-        models.metrics['models'].append('k nearest neighbors')
-        models.metrics['accuracy'].append(acc_knn)
-        models.metrics['precision'].append(p_score_knn)
-        models.metrics['recall'].append(r_score_knn)
-        models.metrics['f1'].append(f1_knn)
-        return scores,class_rep,cf
+        if X_tr.equals(X_val):
+            models.metrics_train['models'].append('k nearest neighbors')
+            models.metrics_train['accuracy'].append(acc_knn)
+            models.metrics_train['precision'].append(p_score_knn)
+            models.metrics_train['recall'].append(r_score_knn)
+            models.metrics_train['f1'].append(f1_knn)
+        else:
+            models.metrics_test['models'].append('k nearest neighbors')
+            models.metrics_test['accuracy'].append(acc_knn)
+            models.metrics_test['precision'].append(p_score_knn)
+            models.metrics_test['recall'].append(r_score_knn)
+            models.metrics_test['f1'].append(f1_knn)
+        return scores,class_rep,cf 
 
     def gaussian_naive_bayes_model(X_tr,y_tr,X_val,y_val):
         """
@@ -533,7 +540,7 @@ class models():
         cf=(confusion_matrix(y_val, Y_pred))
         scores = [acc_gnb,p_score_gnb,r_score_gnb,f1_gnb]
         class_rep=(classification_report(y_val,Y_pred))
-        if X_tr == X_val:
+        if X_tr.equals(X_val):
             models.metrics_train['models'].append('gaussian naive bayes')
             models.metrics_train['accuracy'].append(acc_gnb)
             models.metrics_train['precision'].append(p_score_gnb)
@@ -551,7 +558,7 @@ class models():
         """
         Input data into a linear support vector machine model and output accuracy, precision, recall, f1, and confusion matrix
         """
-        from sklearn.naive_bayes import LinearSVC
+        from sklearn.svm import LinearSVC
         from sklearn.metrics import confusion_matrix
         from sklearn.metrics import f1_score
         from sklearn.metrics import recall_score
@@ -571,18 +578,18 @@ class models():
         cf=(confusion_matrix(y_val, Y_pred))
         scores = [acc_lsvc,p_score_lsvc,r_score_lsvc,f1_lsvc]
         class_rep=(classification_report(y_val,Y_pred))
-        if X_tr == X_val:
-            models.metrics_train['models'].append('k nearest neighbors')
-            models.metrics_train['accuracy'].append(acc_knn)
-            models.metrics_train['precision'].append(p_score_knn)
-            models.metrics_train['recall'].append(r_score_knn)
-            models.metrics_train['f1'].append(f1_knn)
+        if X_tr.equals(X_val):
+            models.metrics_train['models'].append('linear svc')
+            models.metrics_train['accuracy'].append(acc_lsvc)
+            models.metrics_train['precision'].append(p_score_lsvc)
+            models.metrics_train['recall'].append(r_score_lsvc)
+            models.metrics_train['f1'].append(f1_lsvc)
         else:
-            models.metrics_test['models'].append('k nearest neighbors')
-            models.metrics_test['accuracy'].append(acc_knn)
-            models.metrics_test['precision'].append(p_score_knn)
-            models.metrics_test['recall'].append(r_score_knn)
-            models.metrics_test['f1'].append(f1_knn)
+            models.metrics_test['models'].append('linear svc')
+            models.metrics_test['accuracy'].append(acc_lsvc)
+            models.metrics_test['precision'].append(p_score_lsvc)
+            models.metrics_test['recall'].append(r_score_lsvc)
+            models.metrics_test['f1'].append(f1_lsvc)
         return scores,class_rep,cf   
 
     def stochastic_gradient_descent_model(X_tr,y_tr,X_val,y_val,rs):
@@ -609,7 +616,7 @@ class models():
         cf=(confusion_matrix(y_val, Y_pred))
         scores = [acc_sgd,p_score_sgd,r_score_sgd,f1_sgd]
         class_rep=(classification_report(y_val,Y_pred))
-        if X_tr == X_val:
+        if X_tr.equals(X_val):
             models.metrics_train['models'].append('stochastic gradient descent')
             models.metrics_train['accuracy'].append(acc_sgd)
             models.metrics_train['precision'].append(p_score_sgd)
@@ -647,7 +654,7 @@ class models():
         cf=(confusion_matrix(y_val, Y_pred))
         scores = [acc_dt,p_score_dt,r_score_dt,f1_dt]
         class_rep=(classification_report(y_val,Y_pred))
-        if X_tr == X_val:
+        if X_tr.equals(X_val):
             models.metrics_train['models'].append('decision tree')
             models.metrics_train['accuracy'].append(acc_dt)
             models.metrics_train['precision'].append(p_score_dt)
@@ -684,9 +691,9 @@ class models():
         r_score_rfc = round(recall_score(y_val,Y_pred,average='binary')*100,2)
         f1_rfc = round(f1_score(y_val,Y_pred,average='binary')*100,2)
         cf=(confusion_matrix(y_val, Y_pred))
-        scores = [acc_frc,p_score_rfc,r_score_rfc,f1_rfc]
+        scores = [acc_rfc,p_score_rfc,r_score_rfc,f1_rfc]
         class_rep=(classification_report(y_val,Y_pred))
-        if X_tr == X_val:
+        if X_tr.equals(X_val):
             models.metrics_train['models'].append('random forest')
             models.metrics_train['accuracy'].append(acc_rfc)
             models.metrics_train['precision'].append(p_score_rfc)
@@ -726,7 +733,7 @@ class models():
         cf=(confusion_matrix(y_val, Y_pred))
         scores = [acc_xgb,p_score_xgb,r_score_xgb,f1_xgb]
         class_rep=(classification_report(y_val,Y_pred))
-        if X_tr == X_val:
+        if X_tr.equals(X_val):
             models.metrics_train['models'].append('xgboost')
             models.metrics_train['accuracy'].append(acc_xgb)
             models.metrics_train['precision'].append(p_score_xgb)
@@ -740,3 +747,35 @@ class models():
             models.metrics_test['f1'].append(f1_xgb)
         return scores,class_rep,cf
 
+def find_feature_importance(X_tr,y_tr,rs):
+    """
+    Input X and Y variables to find the most important predictive features
+    """
+    from sklearn.ensemble import RandomForestClassifier
+    rfc = RandomForestClassifier(n_estimators=400,min_samples_split=2,min_samples_leaf=1,max_features='sqrt',
+                                           random_state=rs)
+    rfc.fit(X_tr,y_tr)
+    importances = rfc.feature_importances_
+    importance_df = pd.DataFrame(importances).T
+    importance_df.columns = X_tr.columns
+    importance_df_sorted=pd.DataFrame(importance_df.T[0].sort_values()).T
+    importance_df_sorted=importance_df_sorted.sort_values(by=importance_df_sorted.columns[0],ascending=False)
+    return importance_df_sorted.T
+    
+def draw_decision_tree(rs,X_tr,y_tr,depth):
+    """
+    Input a set of data and see the decision tree for selecting values
+    """
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.externals.six import StringIO  
+    from IPython.display import Image  
+    from sklearn.tree import export_graphviz
+    import pydotplus
+    dot_data = StringIO()
+    dt = DecisionTreeClassifier(random_state=rs)
+    dt.fit(X_tr,y_tr)
+    export_graphviz(dt, out_file=dot_data,  
+                filled=True, rounded=True,
+                special_characters=True,max_depth=depth,feature_names=X_tr.columns)
+    graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
+    return Image(graph.create_png())
