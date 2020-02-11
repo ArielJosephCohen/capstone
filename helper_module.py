@@ -1,9 +1,49 @@
+# basic libraries
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import math
 from scipy import stats
+
+# other libraries
+import pydotplus
+from numpy import loadtxt
+from xgboost import XGBClassifier
+from IPython.display import Image  
+from imblearn.ensemble import BalancedRandomForestClassifier 
+
+# sci-kit learn libraries
+from sklearn.utils import resample
+from sklearn.feature_selection import rfe
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.feature_selection import RFECV
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import train_test_split
+from sklearn.externals.six import StringIO  
+from sklearn.tree import export_graphviz
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC, LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import Perceptron
+from sklearn.linear_model import SGDClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.decomposition import PCA
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import auc
+from sklearn.metrics import roc_curve
+from sklearn.metrics import classification_report
 
 def assign_random_seed(number):
     """
@@ -237,7 +277,6 @@ def split_data(X,y,random_seed,t_s=0.25):
     """
     Input X and y for features and target, and split into two groups of data with ability to customize amount of data assigned to test set
     """
-    from sklearn.model_selection import train_test_split
     X_train, X_test, y_train, y_test = train_test_split(X,y,random_state=random_seed,test_size=t_s)
     return (X_train, X_test, y_train, y_test)
 
@@ -252,7 +291,6 @@ def upsample_data(X_tr,y_tr,random_seed):
     """
     Input X and y training data from an unbalanced data set to upsample the minority class for a more meaningful model
     """
-    from sklearn.utils import resample
     training  = pd.concat([X_tr, y_tr], axis=1)
     true = training[training.fraud_reported==0]
     fraud = training[training.fraud_reported==1]
@@ -353,11 +391,6 @@ def reduce_features(dataframe,seed):
     """
     Input a data frame and reduce un-needed features
     """
-    from sklearn.feature_selection import rfe
-    from sklearn.model_selection import RandomizedSearchCV
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.feature_selection import RFECV
-    from sklearn.model_selection import StratifiedKFold
     X = dataframe.drop('fraud_reported',axis=1)
     y = dataframe.fraud_reported
     rfc = RandomForestClassifier(random_state=seed)
@@ -375,7 +408,6 @@ def filter_outliers(dataframe,threshold):
     """
     Input a data frame and have all outliers filtered to a certain and custom threshold of standard deviations
     """
-    from scipy import stats
     dataframe = dataframe[(np.abs(stats.zscore(dataframe)) <= threshold).all(axis=1)]
     return dataframe
 
@@ -391,7 +423,6 @@ def min_max_scale_data(dataframe):
     """
     Input a data frame and scale data using Min-Max scaling
     """
-    from sklearn.preprocessing import MinMaxScaler
     scaler = MinMaxScaler()
     for col in dataframe.columns:
         if (dataframe[col]>=1).sum() >0:
@@ -402,7 +433,6 @@ def standard_scale_data(dataframe):
     """
     Input a data frame and scale data using Min-Max scaling
     """
-    from sklearn.preprocessing import StandardScaler
     ss = StandardScaler()
     for col in dataframe.columns:
         if (dataframe[col]>=1).sum() >0:
@@ -422,16 +452,6 @@ class models():
         """
         Input data into a logistic regression model and output accuracy, precision, recall, f1, and confusion matrix
         """
-    
-        from sklearn.metrics import confusion_matrix
-        from sklearn.metrics import f1_score
-        from sklearn.metrics import recall_score
-        from sklearn.metrics import accuracy_score
-        from sklearn.metrics import precision_score
-        from sklearn.metrics import roc_auc_score
-        from sklearn.linear_model import LogisticRegression
-        from sklearn.metrics import classification_report
-
         logreg = LogisticRegression(C=27825,random_state=rs,penalty='l2',dual=False,fit_intercept=True,multi_class='auto',
                                     solver='liblinear')
         logreg.fit(X_tr, y_tr)
@@ -462,16 +482,6 @@ class models():
         """
         Input data into a support vector machine model and output accuracy, precision, recall, f1, and confusion matrix
         """
-    
-        from sklearn.metrics import confusion_matrix
-        from sklearn.metrics import f1_score
-        from sklearn.metrics import recall_score
-        from sklearn.metrics import accuracy_score
-        from sklearn.metrics import precision_score
-        from sklearn.metrics import roc_auc_score
-        from sklearn.metrics import classification_report
-        from sklearn.svm import SVC
-
         svc = SVC(random_state=rs,C=10,gamma=1,kernel='linear')
         svc.fit(X_tr, y_tr)
         Y_pred = svc.predict(X_val)
@@ -500,16 +510,6 @@ class models():
         """
         Input data into a K nearest neighbors model and output accuracy, precision, recall, f1, and confusion matrix
         """
-
-        from sklearn.metrics import confusion_matrix
-        from sklearn.metrics import f1_score
-        from sklearn.metrics import recall_score
-        from sklearn.metrics import accuracy_score
-        from sklearn.metrics import precision_score
-        from sklearn.metrics import roc_auc_score
-        from sklearn.metrics import classification_report
-        from sklearn.neighbors import KNeighborsClassifier
-
         knn = KNeighborsClassifier(n_neighbors = 3,weights='distance',metric='manhattan',algorithm='ball_tree')
         knn.fit(X_tr, y_tr)
         Y_pred = knn.predict(X_val)
@@ -538,16 +538,6 @@ class models():
         """
         Input data into a gaussian naive bayes model and output accuracy, precision, recall, f1, and confusion matrix
         """
-        from sklearn.naive_bayes import GaussianNB
-        from sklearn.metrics import confusion_matrix
-        from sklearn.metrics import f1_score
-        from sklearn.metrics import recall_score
-        from sklearn.metrics import accuracy_score
-        from sklearn.metrics import precision_score
-        from sklearn.metrics import roc_auc_score
-        from sklearn.metrics import classification_report
-        from sklearn.neighbors import KNeighborsClassifier
-
         gnb = GaussianNB()
         gnb.fit(X_tr, y_tr)
         Y_pred = gnb.predict(X_val)
@@ -576,16 +566,6 @@ class models():
         """
         Input data into a linear support vector machine model and output accuracy, precision, recall, f1, and confusion matrix
         """
-        from sklearn.svm import LinearSVC
-        from sklearn.metrics import confusion_matrix
-        from sklearn.metrics import f1_score
-        from sklearn.metrics import recall_score
-        from sklearn.metrics import accuracy_score
-        from sklearn.metrics import precision_score
-        from sklearn.metrics import roc_auc_score
-        from sklearn.metrics import classification_report
-        from sklearn.neighbors import KNeighborsClassifier
-
         lsvc = LinearSVC(C=100,random_state=rs,penalty='l1',dual=False,loss='squared_hinge')
         lsvc.fit(X_tr, y_tr)
         Y_pred = lsvc.predict(X_val)
@@ -614,16 +594,6 @@ class models():
         """
         Input data into a stochastic gradient descent model and output accuracy, precision, recall, f1, and confusion matrix
         """
-        from sklearn.linear_model import SGDClassifier
-        from sklearn.metrics import confusion_matrix
-        from sklearn.metrics import f1_score
-        from sklearn.metrics import recall_score
-        from sklearn.metrics import accuracy_score
-        from sklearn.metrics import precision_score
-        from sklearn.metrics import roc_auc_score
-        from sklearn.metrics import classification_report
-        from sklearn.neighbors import KNeighborsClassifier
-
         sgd = SGDClassifier(random_state=rs,penalty='l2',fit_intercept=True)
         sgd.fit(X_tr, y_tr)
         Y_pred = sgd.predict(X_val)
@@ -652,16 +622,6 @@ class models():
         """
         Input data into a decision tree model and output accuracy, precision, recall, f1, and confusion matrix
         """
-        from sklearn.tree import DecisionTreeClassifier
-        from sklearn.metrics import confusion_matrix
-        from sklearn.metrics import f1_score
-        from sklearn.metrics import recall_score
-        from sklearn.metrics import accuracy_score
-        from sklearn.metrics import precision_score
-        from sklearn.metrics import roc_auc_score
-        from sklearn.metrics import classification_report
-        from sklearn.neighbors import KNeighborsClassifier
-
         dt = DecisionTreeClassifier(max_depth=9,random_state=rs,min_samples_leaf=1)
         dt.fit(X_tr,y_tr)
         Y_pred = dt.predict(X_val)
@@ -690,16 +650,6 @@ class models():
         """
         Input data into a random forest model and output accuracy, precision, recall, f1, and confusion matrix
         """
-        from sklearn.ensemble import RandomForestClassifier
-        from sklearn.metrics import confusion_matrix
-        from sklearn.metrics import f1_score
-        from sklearn.metrics import recall_score
-        from sklearn.metrics import accuracy_score
-        from sklearn.metrics import precision_score
-        from sklearn.metrics import roc_auc_score
-        from sklearn.metrics import classification_report
-        from sklearn.neighbors import KNeighborsClassifier
-
         rfc = RandomForestClassifier(n_estimators=400,min_samples_split=2,min_samples_leaf=1,max_features='sqrt',
                                            random_state=rs)
         rfc.fit(X_tr,y_tr)
@@ -725,22 +675,10 @@ class models():
             models.metrics_test['f1'].append(f1_rfc)
         return scores,class_rep,cf
 
-
     def XGBoost_model(X_tr,y_tr,X_val,y_val,rs):
         """
         Input data into a XGBoost model and output accuracy, precision, recall, f1, and confusion matrix
         """
-        from sklearn.ensemble import RandomForestClassifier
-        from sklearn.metrics import confusion_matrix
-        from sklearn.metrics import f1_score
-        from sklearn.metrics import recall_score
-        from sklearn.metrics import accuracy_score
-        from sklearn.metrics import precision_score
-        from sklearn.metrics import roc_auc_score
-        from sklearn.metrics import classification_report
-        from numpy import loadtxt
-        from xgboost import XGBClassifier
-
         xgb = XGBClassifier(learning_rate=0.1,max_depth=5,n_estimators=140)
         xgb.fit(X_tr,y_tr)
         Y_pred = xgb.predict(X_val)
@@ -769,7 +707,7 @@ def find_feature_importance(X_tr,y_tr,rs):
     """
     Input X and Y variables to find the most important predictive features
     """
-    from sklearn.ensemble import RandomForestClassifier
+    
     rfc = RandomForestClassifier(n_estimators=400,min_samples_split=2,min_samples_leaf=1,max_features='sqrt',
                                            random_state=rs)
     rfc.fit(X_tr,y_tr)
@@ -784,11 +722,6 @@ def draw_decision_tree(rs,X_tr,y_tr,depth):
     """
     Input a set of data and see the decision tree for selecting values
     """
-    from sklearn.tree import DecisionTreeClassifier
-    from sklearn.externals.six import StringIO  
-    from IPython.display import Image  
-    from sklearn.tree import export_graphviz
-    import pydotplus
     dot_data = StringIO()
     dt = DecisionTreeClassifier(random_state=rs)
     dt.fit(X_tr,y_tr)
