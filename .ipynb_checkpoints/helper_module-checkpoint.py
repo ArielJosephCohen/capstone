@@ -476,7 +476,7 @@ class models():
             models.metrics_test['precision'].append(p_score_svc)
             models.metrics_test['recall'].append(r_score_svc)
             models.metrics_test['f1'].append(f1_svc)
-        return scores,class_rep,cf   
+        return scores,class_rep,cf  
 
     def knn_model(X_tr,y_tr,X_val,y_val):
         """
