@@ -371,19 +371,26 @@ def reduce_features(dataframe,seed):
     xydf = pd.concat([X[importance],dataframe.fraud_reported],axis=1)
     return xydf
 
-def filter_outliers(dataframe):
+def filter_outliers(dataframe,threshold):
+    """
+    Input a data frame and have all outliers filtered to a certain and custom threshold of standard deviations
+    """
     from scipy import stats
-    dataframe = dataframe[(np.abs(stats.zscore(dataframe)) <= 2.5).all(axis=1)]
+    dataframe = dataframe[(np.abs(stats.zscore(dataframe)) <= threshold).all(axis=1)]
     return dataframe
 
 def normalize_features(dataframe):
+    """
+    Input a data frame and use Box-Cox transform to normalize data
+    """
     for col in dataframe.columns:
         dataframe[col]=list(stats.boxcox(abs(dataframe[col]+0.01)))[0]
     return dataframe
     
 def scale_data(dataframe):
-    from sklearn.preprocessing import StandardScaler
-    ss = StandardScaler()
+    """
+    Input a data frame and scale data using Min-Max scaling
+    """
     from sklearn.preprocessing import MinMaxScaler
     scaler = MinMaxScaler()
     for col in dataframe.columns:
