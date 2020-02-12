@@ -14,27 +14,6 @@ from IPython.display import Image
 from imblearn.ensemble import BalancedRandomForestClassifier 
 
 # sci-kit learn libraries
-from sklearn.utils import resample
-from sklearn.feature_selection import rfe
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.feature_selection import RFECV
-from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import train_test_split
-from sklearn.externals.six import StringIO  
-from sklearn.tree import export_graphviz
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report
-from sklearn.model_selection import GridSearchCV
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC, LinearSVC
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import Perceptron
-from sklearn.linear_model import SGDClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
 from sklearn.metrics import recall_score
@@ -44,6 +23,26 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import auc
 from sklearn.metrics import roc_curve
 from sklearn.metrics import classification_report
+from sklearn.feature_selection import rfe
+from sklearn.feature_selection import RFECV
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import Perceptron
+from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import export_graphviz
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC, LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.decomposition import PCA
+from sklearn.utils import resample
+from sklearn.externals.six import StringIO  
 
 def assign_random_seed(number):
     """
